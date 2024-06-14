@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->store_result();
     $stmt->bind_result($id, $hashed_password);
     $stmt->fetch();
-
+//proceso
     if ($stmt->num_rows > 0 && password_verify($password, $hashed_password)) {
         $_SESSION['user_id'] = $id;
         header("Location: dashboard.php");
