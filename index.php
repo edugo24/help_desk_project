@@ -1,4 +1,6 @@
 <?php
+
+require_once 'config.php'; 
 require __DIR__ . '/vendor/autoload.php';
 
 // Ejemplo de uso de vlucas/phpdotenv
