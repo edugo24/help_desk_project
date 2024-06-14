@@ -1,11 +1,15 @@
 <?php
+// Importar Google2FA
+use PragmaRX\Google2FAQRCode\Google2FA;
+
 require 'database.php';
 
 session_start();
-//establecimiento de request
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
+    $mfa_code = $_POST['mfa_code'];
 
     $stmt = $mysqli->prepare("SELECT id, password FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
@@ -13,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->store_result();
     $stmt->bind_result($id, $hashed_password);
     $stmt->fetch();
-//proceso
+
     if ($stmt->num_rows > 0 && password_verify($password, $hashed_password)) {
         $_SESSION['user_id'] = $id;
         header("Location: dashboard.php");
@@ -21,6 +25,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "Invalid credentials";
     }
     $stmt->close();
+
+    if ($user && password_verify($password, $user['password'])) {
+        // Validar el código MFA
+        $google2fa = new Google2FA();
+        if ($google2fa->verifyKey($user['mfa_secret'], $mfa_code)) {
+            // Código MFA válido, iniciar sesión
+            $_SESSION['user_id'] = $user['id'];
+            header("Location: dashboard.php");
+            exit();
+        } else {
+            // Código MFA no válido
+            echo "Código MFA no válido.";
+        }
+    } else {
+        // Usuario o contraseña no válido
+        echo "Usuario o contraseña incorrectos.";
+    }
+
 }
 ?>
 <!DOCTYPE html>

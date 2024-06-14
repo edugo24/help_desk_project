@@ -1,5 +1,8 @@
 
 <?php
+// Importar Google2FA
+use PragmaRX\Google2FAQRCode\Google2FA;
+
 session_start();
 require 'database.php';
 
@@ -20,8 +23,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
     $stmt = $mysqli->prepare("INSERT INTO users (username, password, email, rol) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("ssss", $username, $password, $email, $role);
     $stmt->execute();
+    $user_id = $stmt->insert_id;
     $stmt->close();
 }
+
+ // Generar el secreto MFA
+ $google2fa = new Google2FA();
+ $secret = $google2fa->generateSecretKey();
+
+ // Guardar el secreto en la base de datos
+ $sql = "UPDATE users SET mfa_secret = :mfa_secret WHERE id = :id";
+ $stmt = $pdo->prepare($sql);
+ $stmt->execute(['mfa_secret' => $secret, 'id' => $user_id]);
+
+ // Redirigir o mostrar un mensaje de éxito
+ header("Location: dashboard.php");
+ exit();
+
 
 // Cambiar contraseña de usuario
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['changePassword'])) {
@@ -47,6 +65,7 @@ if (isset($_POST['logout'])) {
     session_destroy();
     header("Location: login.php");
     exit();
+
 }
 ?>
 <!DOCTYPE html>

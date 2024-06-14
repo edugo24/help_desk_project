@@ -1,4 +1,7 @@
 <?php
+// Importar Google2FA
+use PragmaRX\Google2FAQRCode\Google2FA;
+
 session_start();
 require 'database.php';
 
@@ -21,6 +24,18 @@ if (isset($_POST['logout'])) {
     header("Location: login.php");
     exit();
 }
+
+// Generar el QR Code
+$google2fa = new Google2FA();
+$inlineUrl = $google2fa->getQRCodeInline(
+    'Help Desk System',
+    $user['email'],
+    $user['mfa_secret']
+);
+
+// Mostrar el QR Code en la vista
+echo '<img src="'.$inlineUrl.'" />';
+
 ?>
 
 <!DOCTYPE html>
