@@ -1,8 +1,9 @@
 <?php
 // Importar Google2FA
-use PragmaRX\Google2FAQRCode\Google2FA;
+use PragmaRX\Google2FA\Google2FA;
 
-require 'database.php';
+require 'vendor/autoload.php'; // Asegúrate de cargar Google2FA con Composer
+require 'database.php'; // Asegúrate de que este archivo establece la conexión a la base de datos
 
 session_start();
 
@@ -11,27 +12,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
     $mfa_code = $_POST['mfa_code'];
 
-    $stmt = $mysqli->prepare("SELECT id, password FROM users WHERE username = ?");
+    $stmt = $mysqli->prepare("SELECT id, password, mfa_secret FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $stmt->store_result();
-    $stmt->bind_result($id, $hashed_password);
+    $stmt->bind_result($id, $hashed_password, $mfa_secret);
     $stmt->fetch();
 
     if ($stmt->num_rows > 0 && password_verify($password, $hashed_password)) {
-        $_SESSION['user_id'] = $id;
-        header("Location: dashboard.php");
-    } else {
-        echo "Invalid credentials";
-    }
-    $stmt->close();
-
-    if ($user && password_verify($password, $user['password'])) {
         // Validar el código MFA
         $google2fa = new Google2FA();
-        if ($google2fa->verifyKey($user['mfa_secret'], $mfa_code)) {
+        if ($google2fa->verifyKey($mfa_secret, $mfa_code)) {
             // Código MFA válido, iniciar sesión
-            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_id'] = $id;
             header("Location: dashboard.php");
             exit();
         } else {
@@ -39,10 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo "Código MFA no válido.";
         }
     } else {
-        // Usuario o contraseña no válido
+        // Usuario o contraseña no válidos
         echo "Usuario o contraseña incorrectos.";
     }
-
+    
+    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
@@ -74,6 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <label for="password">Contraseña</label>
                                 <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" required>
                             </div>
+                            <div class="form-group">
+                                <label for="mfa_code">Código de Acceso</label>
+                                <input type="password" class="form-control" id="mfa_code" name="mfa_code" placeholder="Código de Acceso" required>
+                            </div>
                             <button type="submit" class="btn btn-success btn-block">Iniciar Sesión</button>
                         </form>
                     </div>
@@ -83,4 +81,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </body>
 </html>
+
 

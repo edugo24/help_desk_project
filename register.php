@@ -1,15 +1,18 @@
 
 <?php
 // Importar Google2FA
-use PragmaRX\Google2FAQRCode\Google2FA;
+use PragmaRX\Google2FA\Google2FA;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 
-session_start();
+//session_start();
 require 'database.php';
 
-if (!isset($_SESSION['user_id'])) {
+/*if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
+*/
 
 $editSuccess = false;
 
@@ -25,20 +28,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
     $stmt->execute();
     $user_id = $stmt->insert_id;
     $stmt->close();
-}
 
- // Generar el secreto MFA
+    // Generar el secreto MFA
  $google2fa = new Google2FA();
  $secret = $google2fa->generateSecretKey();
 
- // Guardar el secreto en la base de datos
- $sql = "UPDATE users SET mfa_secret = :mfa_secret WHERE id = :id";
- $stmt = $pdo->prepare($sql);
- $stmt->execute(['mfa_secret' => $secret, 'id' => $user_id]);
 
- // Redirigir o mostrar un mensaje de éxito
- header("Location: dashboard.php");
- exit();
+ // Guardar el secreto en la base de datos
+ $stmt = $mysqli->prepare("UPDATE users SET mfa_secret = ? WHERE id = ?");
+ $stmt->bind_param("si", $secret, $user_id);
+ $stmt->execute();
+ $stmt->close();
+
+  $qrCodeUrl = $google2fa->getQRCodeUrl(
+    'HelpDesk',
+    $username,
+    $secret
+);
+
+// Crear el código QR
+$qrCode = QrCode::create($qrCodeUrl)
+->setSize(300)
+->setMargin(10);
+
+$writer = new PngWriter();
+$qrCodeImage = $writer->write($qrCode);
+
+// Guardar la imagen del código QR en un archivo temporal
+$qrCodeImage->saveToFile(__DIR__ . '/qrcode.png');
+
+echo 'Usuario registrado. Escanea este código QR con Google Authenticator:<br>';
+echo '<img src="data:image/png;base64,' . base64_encode($qrCodeImage->getString()) . '">';
+}
+
+ 
 
 
 // Cambiar contraseña de usuario

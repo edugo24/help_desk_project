@@ -32,11 +32,17 @@ class ComposerStaticInite5ad5e07744f34ea88392c8e59153bd1
         ),
         'E' => 
         array (
+            'Endroid\\QrCode\\' => 15,
             'Eduardo\\HelpDeskProject\\' => 24,
         ),
         'D' => 
         array (
             'Dotenv\\' => 7,
+            'DASPRiD\\Enum\\' => 13,
+        ),
+        'B' => 
+        array (
+            'BaconQrCode\\' => 12,
         ),
     );
 
@@ -73,6 +79,10 @@ class ComposerStaticInite5ad5e07744f34ea88392c8e59153bd1
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
         ),
+        'Endroid\\QrCode\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/endroid/qr-code/src',
+        ),
         'Eduardo\\HelpDeskProject\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
@@ -80,6 +90,14 @@ class ComposerStaticInite5ad5e07744f34ea88392c8e59153bd1
         'Dotenv\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
+        ),
+        'DASPRiD\\Enum\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dasprid/enum/src',
+        ),
+        'BaconQrCode\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/bacon/bacon-qr-code/src',
         ),
     );
 
