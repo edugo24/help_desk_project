@@ -4,15 +4,16 @@
 use PragmaRX\Google2FA\Google2FA;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-//session_start();
+session_start();
 require 'database.php';
-
-/*if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
-*/
+
 
 $editSuccess = false;
 
@@ -55,10 +56,14 @@ $writer = new PngWriter();
 $qrCodeImage = $writer->write($qrCode);
 
 // Guardar la imagen del código QR en un archivo temporal
-$qrCodeImage->saveToFile(__DIR__ . '/qrcode.png');
+$qrFilePath = __DIR__ . '/qrcode.png';
+$qrCodeImage->saveToFile($qrFilePath);
 
-echo 'Usuario registrado. Escanea este código QR con Google Authenticator:<br>';
-echo '<img src="data:image/png;base64,' . base64_encode($qrCodeImage->getString()) . '">';
+    $texto = '<p>Usuario registrado. Escanea este codigo QR con Google Authenticator:</p>';
+    $texto .= '<img src="data:image/png;base64,' . base64_encode($qrCodeImage->getString()) . '">';
+ 
+
+sendEmail($texto, $email, $qrFilePath);
 }
 
  
@@ -89,7 +94,44 @@ if (isset($_POST['logout'])) {
     header("Location: login.php");
     exit();
 
+
 }
+
+function sendEmail($texto, $email, $qrFilePath){
+    $mail = new PHPMailer(true);
+
+    try {
+        // Configuración del servidor
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.outlook.com';                    // Servidor SMTP de Gmail
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'carlos.campos97@outlook.es';               // Tu correo de Gmail
+        $mail->Password   = 'claudia13';                     // Tu contraseña de Gmail
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+    
+        // Remitente y destinatario
+        $mail->setFrom('carlos.campos97@outlook.es', 'Carlos Campos');
+        $mail->addAddress($email, 'Nombre del Destinatario');     // Añadir un destinatario
+    
+        // Contenido del correo
+        $mail->isHTML(true);
+        $mail->Subject = 'Codido de Autenticacion';
+        $mail->Body    = $texto;
+        $mail->AltBody = 'Este es el contenido del correo en texto plano para clientes que no soportan HTML.';
+
+
+        // Adjuntar la imagen del código QR
+        $mail->addAttachment($qrFilePath, 'qrcode.png');
+    
+        $mail->send();
+        echo 'El mensaje ha sido enviado';
+    } catch (Exception $e) {
+        echo "El mensaje no pudo ser enviado. Error de PHPMailer: {$mail->ErrorInfo}";
+    }
+
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
