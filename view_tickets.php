@@ -31,6 +31,7 @@ if (isset($_POST['cancel_ticket'])) {
     $stmt->bind_param("i", $ticket_id);
     $stmt->execute();
     $stmt->close();
+    header("Location: view_tickets.php");
 }
 
 // Función para finalizar un ticket
@@ -41,6 +42,14 @@ if (isset($_POST['finalize_ticket'])) {
     $stmt->bind_param("i", $ticket_id);
     $stmt->execute();
     $stmt->close();
+}
+
+if (isset($_POST['logout'])) {
+    session_destroy();
+    header("Location: login.php");
+    exit();
+
+
 }
 ?>
 
@@ -62,9 +71,11 @@ if (isset($_POST['finalize_ticket'])) {
                 <div class="col">
                     <a href="dashboard.php" class="btn btn-primary">Volver a Menu</a>
                 </div>
-                <div class="col text-right">
-                    <a href="logout.php" class="btn btn-danger">Logout</a>
-                </div>
+                <div class="col-6 text-right">
+            <form method="POST">
+                <button class="btn btn-outline-danger my-2 my-sm-0" type="submit" name="logout">Logout</button>
+            </form>
+            </div>
             </div>
         </header>
 
